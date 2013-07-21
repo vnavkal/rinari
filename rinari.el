@@ -217,7 +217,9 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
      (list (list
             (concat "\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b"
                     (regexp-opt keywords t)
-                    ruby-keyword-end-re)
+                    (eval-when-compile (if (string-match "\\_>" "ruby")
+                                           "\\_>"
+                                         "\\>")))
             (list 2 'font-lock-builtin-face))))))
 
 (defun rinari-apply-keywords-for-file-type ()
