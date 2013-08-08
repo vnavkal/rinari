@@ -327,11 +327,12 @@ arguments."
 
 (defun rinari--rails-path ()
   "Return the path of the 'rails' command, or nil if not found."
-  (let* ((script (rinari-script-path))
-         (rails-script (expand-file-name "rails" script)))
-    (if (file-exists-p rails-script)
-        rails-script
-      (executable-find "rails"))))
+  (let* ((script-rails (expand-file-name "rails" (rinari-script-path)))
+         (bin-rails (expand-file-name "rails" (rinari-bin-path))))
+    (cond
+     ((file-exists-p bin-rails) bin-rails)
+     ((file-exists-p script-rails) script-rails)
+     (t (executable-find "rails")))))
 
 (defun rinari--wrap-rails-command (command)
   "Given a COMMAND such as 'console', return a suitable command line.
@@ -531,6 +532,10 @@ With optional prefix argument ARG, just run `rgrep'."
 (defun rinari-script-path ()
   "Return the absolute path to the script folder."
   (concat (file-name-as-directory (expand-file-name "script" (rinari-root)))))
+
+(defun rinari-bin-path ()
+  "Return the absolute path to the bin folder."
+  (concat (file-name-as-directory (expand-file-name "bin" (rinari-root)))))
 
 ;;--------------------------------------------------------------------
 ;; rinari movement using jump.el
