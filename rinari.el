@@ -247,7 +247,6 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
 (defun rinari-rake-migrate-down (path &optional edit-cmd-args)
   "Perform a down migration for the migration with PATH."
   (interactive "fMigration: ")
-  (message "file %s" path)
   (let* ((file (file-name-nondirectory path))
          (n (if (string-match "^\\([0-9]+\\)_[^/]+$" file)
                 (match-string 1 file)
