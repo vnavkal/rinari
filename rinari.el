@@ -244,6 +244,18 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
                          (when rinari-rails-env
                            (list (cons "RAILS_ENV" rinari-rails-env)))))
 
+(defun rinari-rake-migrate-down (path &optional edit-cmd-args)
+  "Perform a down migration for the migration with PATH."
+  (interactive "fMigration: ")
+  (message "file %s" path)
+  (let* ((file (file-name-nondirectory path))
+         (n (if (string-match "^\\([0-9]+\\)_[^/]+$" file)
+                (match-string 1 file)
+              (error "Couldn't determine migration number"))))
+    (ruby-compilation-rake "db:migrate:down"
+                           edit-cmd-args
+                           (list (cons "VERSION" n)))))
+
 (defun rinari-cap (&optional task edit-cmd-args)
   "Select and run a capistrano TASK using `ruby-compilation-cap'."
   (interactive "P")
