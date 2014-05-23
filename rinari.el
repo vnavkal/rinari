@@ -773,6 +773,7 @@ and redirects."
    (steps "S" ((t . "features/step_definitions/.*")) nil)
    (environment "e" ((t . "config/environments/")) nil)
    (application "a" ((t . "config/application.rb")) nil)
+   (routes "R" ((t . "config/routes.rb")) nil)
    (configuration "n" ((t . "config/")) nil)
    (script "s" ((t . "script/")) nil)
    (lib "l" ((t . "lib/")) nil)
