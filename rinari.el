@@ -237,6 +237,7 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
 ;;--------------------------------------------------------------------------------
 ;; user functions
 
+;;;###autoload
 (defun rinari-rake (&optional task edit-cmd-args)
   "Select and run a rake TASK using `ruby-compilation-rake'."
   (interactive "P")
@@ -255,6 +256,7 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
                            edit-cmd-args
                            (list (cons "VERSION" n)))))
 
+;;;###autoload
 (defun rinari-cap (&optional task edit-cmd-args)
   "Select and run a capistrano TASK using `ruby-compilation-cap'."
   (interactive "P")
