@@ -77,6 +77,7 @@
 (require 'ruby-compilation)
 (require 'jump)
 (require 'cl)
+(require 'json)
 (require 'easymenu)
 
 ;; fill in some missing variables for XEmacs
@@ -192,13 +193,13 @@ leave this to the environment variables outside of Emacs.")
     ad-do-it
     (rinari-launch)))
 
-(defun rinari-parse-yaml ()
-  "Parse key/value pairs out of a simple yaml file."
-  (let ((end (save-excursion (re-search-forward "^[^:]*$" nil t) (point)))
-        pairs)
-    (while (re-search-forward "^ *\\(.*\\): \\(.*\\)$" end t)
-      (push (cons (match-string 1) (match-string 2)) pairs))
-    pairs))
+(defun rinari-parse-yaml (file)
+  "Parse the YAML contents of FILE."
+  (json-read-from-string
+   (shell-command-to-string
+    (concat ruby-compilation-executable
+            " -ryaml -rjson -e 'JSON.dump(YAML.load(ARGF.read), STDOUT)' "
+            (shell-quote-argument file)))))
 
 (defun rinari-root (&optional dir home)
   "Return the root directory of the project within which DIR is found.
@@ -398,23 +399,20 @@ Looks up login information from your conf/database.sql file."
          (existing-buffer (get-buffer (concat "*SQL: " environment "*"))))
     (if existing-buffer
         (pop-to-buffer existing-buffer)
-      (let* ((database-alist (save-excursion
-                               (with-temp-buffer
-                                 (insert-file-contents
-                                  (expand-file-name
-                                   "database.yml"
-                                   (file-name-as-directory
-                                    (expand-file-name "config" (rinari-root)))))
-                                 (goto-char (point-min))
-                                 (re-search-forward (concat "^" environment ":"))
-                                 (rinari-parse-yaml))))
-             (adapter (or (cdr (assoc "adapter" database-alist)) "sqlite"))
-             (server (or (cdr (assoc "host" database-alist)) "localhost"))
-             (port (cdr (assoc "port" database-alist))))
+      (let* ((database-yaml (rinari-parse-yaml
+                             (expand-file-name
+                              "database.yml"
+                              (file-name-as-directory
+                               (expand-file-name "config" (rinari-root))))))
+             (database-alist (or (cdr (assoc (intern environment) database-yaml))
+                                 (error "Couldn't parse database.yml")))
+             (adapter (or (cdr (assoc 'adapter database-alist)) "sqlite"))
+             (server (or (cdr (assoc 'host database-alist)) "localhost"))
+             (port (cdr (assoc 'port database-alist))))
         (with-temp-buffer
-          (set (make-local-variable 'sql-user) (cdr (assoc "username" database-alist)))
-          (set (make-local-variable 'sql-password) (cdr (assoc "password" database-alist)))
-          (set (make-local-variable 'sql-database) (or (cdr (assoc "database" database-alist))
+          (set (make-local-variable 'sql-user) (cdr (assoc 'username database-alist)))
+          (set (make-local-variable 'sql-password) (cdr (assoc 'password database-alist)))
+          (set (make-local-variable 'sql-database) (or (cdr (assoc 'database database-alist))
                                                        (concat (file-name-nondirectory (rinari-root))
                                                                "_" environment)))
           (set (make-local-variable 'sql-server) (if port (concat server ":" port) server))
