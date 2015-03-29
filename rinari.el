@@ -355,6 +355,12 @@ arguments."
      ((file-exists-p script-rails) script-rails)
      (t (executable-find "rails")))))
 
+(defun rinari--maybe-wrap-with-ruby (command-line)
+  "If the first part of COMMAND-LINE is not executable, prepend with ruby."
+  (if (file-executable-p (first (split-string-and-unquote command-line)))
+      command-line
+    (concat ruby-compilation-executable " " command-line)))
+
 (defun rinari--wrap-rails-command (command)
   "Given a COMMAND such as 'console', return a suitable command line.
 Where the corresponding script is executable, it will be run
@@ -362,14 +368,10 @@ as-is.  Otherwise, as can be the case on Windows, the command will
 be prepended with `ruby-compilation-executable'."
   (let* ((default-directory (rinari-root))
          (script (rinari-script-path))
-         (script-command (expand-file-name command script))
-         (command-line
-          (if (file-exists-p script-command)
-              script-command
-            (concat (rinari--rails-path) " " command))))
-    (if (file-executable-p (first (split-string-and-unquote command-line)))
-        command-line
-      (concat ruby-compilation-executable " " command-line))))
+         (script-command (expand-file-name command script)))
+    (if (file-exists-p script-command)
+        script-command
+      (concat (rinari--rails-path) " " command))))
 
 (defun rinari-console (&optional edit-cmd-args)
   "Run a Rails console in a compilation buffer.
@@ -378,7 +380,8 @@ and source code.  Optional prefix argument EDIT-CMD-ARGS lets the
 user edit the console command arguments."
   (interactive "P")
   (let* ((default-directory (rinari-root))
-         (command (rinari--wrap-rails-command "console")))
+         (command (rinari--maybe-wrap-with-ruby
+                   (rinari--wrap-rails-command "console"))))
 
     ;; Start console in correct environment.
     (when rinari-rails-env
@@ -560,7 +563,9 @@ With optional prefix argument ARG, just run `rgrep'."
   "Run the generate command to generate a TYPE called NAME."
   (let* ((default-directory (rinari-root))
          (command (rinari--wrap-rails-command "generate")))
-    (message (shell-command-to-string (concat command " " type " " (read-from-minibuffer (format "create %s: " type) name))))))
+    (shell-command
+     (rinari--maybe-wrap-with-ruby
+      (concat command " " type " " (read-from-minibuffer (format "create %s: " type) name))))))
 
 (defvar rinari-ruby-hash-regexp
   "\\(:[^[:space:]]*?\\)[[:space:]]*\\(=>[[:space:]]*[\"\':]?\\([^[:space:]]*?\\)[\"\']?[[:space:]]*\\)?[,){}\n]"
