@@ -419,7 +419,8 @@ Looks up login information from your conf/database.sql file."
                                                        (when (string-match-p "sqlite" adapter)
                                                          (expand-file-name (concat "db/" environment ".sqlite3")
                                                                            (rinari-root)))
-                                                       (concat (file-name-nondirectory (rinari-root))
+                                                       (concat (file-name-nondirectory
+                                                                (directory-file-name (rinari-root)))
                                                                "_" environment)))
           (set (make-local-variable 'sql-server) (if port (concat server ":" port) server))
           (funcall
