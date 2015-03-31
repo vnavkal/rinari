@@ -402,6 +402,8 @@ Looks up login information from your conf/database.sql file."
          (existing-buffer (get-buffer (concat "*SQL: " environment "*"))))
     (if existing-buffer
         (pop-to-buffer existing-buffer)
+      (unless (featurep 'sql)
+        (require 'sql))
       (let* ((database-yaml (rinari-parse-yaml
                              (expand-file-name
                               "database.yml"
@@ -409,33 +411,34 @@ Looks up login information from your conf/database.sql file."
                                (expand-file-name "config" (rinari-root))))))
              (database-alist (or (cdr (assoc (intern environment) database-yaml))
                                  (error "Couldn't parse database.yml")))
-             (adapter (or (cdr (assoc 'adapter database-alist)) "sqlite"))
-             (server (or (cdr (assoc 'host database-alist)) "localhost"))
-             (port (cdr (assoc 'port database-alist))))
+             (product (let* ((adapter (or (cdr (assoc 'adapter database-alist)) "sqlite")))
+                        (cond
+                         ((string-match "mysql" adapter) "mysql")
+                         ((string-match "sqlite" adapter) "sqlite")
+                         ((string-match "postgresql" adapter) "postgres")
+                         (t adapter))))
+             (port (cdr (assoc 'port database-alist)))
+             (sql-login-params (or (intern-soft (concat "sql-" product "-login-params"))
+                                   (error "`%s' is not a known product; use `sql-add-product' to add it first" product))))
         (with-temp-buffer
           (set (make-local-variable 'sql-user) (cdr (assoc 'username database-alist)))
           (set (make-local-variable 'sql-password) (cdr (assoc 'password database-alist)))
           (set (make-local-variable 'sql-database) (or (cdr (assoc 'database database-alist))
-                                                       (when (string-match-p "sqlite" adapter)
+                                                       (when (string-match-p "sqlite" product)
                                                          (expand-file-name (concat "db/" environment ".sqlite3")
                                                                            (rinari-root)))
                                                        (concat (file-name-nondirectory
                                                                 (directory-file-name (rinari-root)))
                                                                "_" environment)))
-          (when (string-match-p "sqlite" adapter)
+          (when (string= "sqlite" product)
             ;; Always expand sqlite DB filename relative to RAILS_ROOT
             (setq sql-database (expand-file-name sql-database (rinari-root))))
-          (set (make-local-variable 'sql-server) (if port (concat server ":" (number-to-string port)) server))
+          (set (make-local-variable 'sql-server) (or (cdr (assoc 'host database-alist)) "localhost"))
+          (when port
+            (set (make-local-variable 'sql-port) port)
+            (set (make-local-variable sql-login-params) (add-to-list sql-login-params 'port t)))
           (funcall
-           (intern (concat "sql-"
-                           (cond
-                            ((string-match "mysql" adapter)
-                             "mysql")
-                            ((string-match "sqlite" adapter)
-                             "sqlite")
-                            ((string-match "postgresql" adapter)
-                             "postgres")
-                            (t adapter))))
+           (intern (concat "sql-" product))
            environment))))
     (rinari-launch)))
 
