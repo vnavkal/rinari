@@ -425,7 +425,7 @@ Looks up login information from your conf/database.sql file."
           (when (string-match-p "sqlite" adapter)
             ;; Always expand sqlite DB filename relative to RAILS_ROOT
             (setq sql-database (expand-file-name sql-database (rinari-root))))
-          (set (make-local-variable 'sql-server) (if port (concat server ":" port) server))
+          (set (make-local-variable 'sql-server) (if port (concat server ":" (number-to-string port)) server))
           (funcall
            (intern (concat "sql-"
                            (cond
