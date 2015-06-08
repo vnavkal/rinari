@@ -297,8 +297,9 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
          (ruby-compilation-error-regexp-alist ;; for jumping to newly created files
           (if (equal script "generate")
               '(("^ +\\(create\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2)
-                ("^ +\\(exists\\) +\\([^[:space:]]+\\)" 2 3 nil 0 1)
-                ("^ +\\(conflict\\) +\\([^[:space:]]+\\)" 2 3 nil 0 0))
+                ("^ +\\(identical\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2)
+                ("^ +\\(exists\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2)
+                ("^ +\\(conflict\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2))
             ruby-compilation-error-regexp-alist))
          (script-path (concat (rinari--wrap-rails-command script) " ")))
     (when (string-match-p "^\\(db\\)?console" script)
