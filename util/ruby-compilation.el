@@ -77,10 +77,6 @@ Should be used with `make-local-variable'.")
 (defvar ruby-compilation-reuse-buffers t
   "Whether to re-use the same comint buffer for focussed tests.")
 
-(defvar ruby-compilation-buffer nil
-  "Buffer produced by the last ruby compilation.")
-(make-variable-buffer-local 'ruby-compilation-buffer)
-
 
 ;;; Core plumbing
 
@@ -129,23 +125,13 @@ Returns the compilation buffer."
                      (when (boundp 'compilation-save-buffers-predicate)
                        compilation-save-buffers-predicate))
   (let* ((this-dir default-directory))
-    (setq ruby-compilation-buffer (get-buffer-create (concat "*" name "*")))
-    (with-current-buffer ruby-compilation-buffer
-      (setq default-directory this-dir)
-      (compilation-start
-       (concat (car cmdlist) " "
-               (mapconcat 'shell-quote-argument (cdr cmdlist) " "))
-       'ruby-compilation-mode
-       (lambda (m) (buffer-name))))))
-
-(defadvice recompile (around maybe-use-ruby-compilation (&optional edit-command) activate)
-  "If `ruby-compilation-buffer' is set, recompile there instead."
-  (if (and (null edit-command)
-           ruby-compilation-buffer
-           (buffer-live-p (get-buffer ruby-compilation-buffer)))
-      (with-current-buffer ruby-compilation-buffer
-        ad-do-it)
-    ad-do-it))
+    (with-current-buffer (get-buffer-create (concat "*" name "*"))
+        (setq default-directory this-dir)
+        (compilation-start
+         (concat (car cmdlist) " "
+                 (mapconcat 'shell-quote-argument (cdr cmdlist) " "))
+         'ruby-compilation-mode
+         (lambda (m) (buffer-name))))))
 
 (defun ruby-compilation--skip-past-errors (line-incr)
   "Repeatedly move LINE-INCR lines forward until the current line is not an error."
