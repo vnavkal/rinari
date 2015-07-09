@@ -1,8 +1,9 @@
 ;;; rinari.el --- Rinari Is Not A Rails IDE
 
 ;; Copyright (C) 2008 Phil Hagelberg, Eric Schulte
+;; Copyright (C) 2009-2015 Steve Purcell
 
-;; Author: Phil Hagelberg, Eric Schulte
+;; Author: Phil Hagelberg, Eric Schulte, Steve Purcell
 ;; URL: https://github.com/eschulte/rinari
 ;; Version: DEV
 ;; Created: 2006-11-10

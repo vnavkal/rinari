@@ -1,8 +1,10 @@
 ;;; ruby-compilation.el --- run a ruby process in a compilation buffer
 
 ;; Copyright (C) 2008 Eric Schulte
+;; Copyright (C) 2009-2015 Steve Purcell
 
 ;; Author: Eric Schulte
+;; Maintainer: Steve Purcell <steve@sanityinc.com>
 ;; URL: https://github.com/eschulte/rinari
 ;; Version: 0.17
 ;; Created: 2008-08-23
