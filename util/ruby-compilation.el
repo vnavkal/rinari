@@ -80,27 +80,9 @@ Should be used with `make-local-variable'.")
 
 ;;; Core plumbing
 
-(defun ruby-compilation--adjust-paths (beg end)
-  (save-excursion
-    (goto-char beg)
-    (while (re-search-forward "\\(^[\t ]+\\|\\[\\)/test" end t)
-      (replace-match "\\1test"))))
-
 (defun ruby-compilation-filter ()
   "Filter function for compilation output."
-  (save-excursion
-    (forward-line 0)
-    (let ((end (point)) beg)
-      (goto-char compilation-filter-start)
-      (forward-line 0)
-      (setq beg (point))
-      ;; Only operate on whole lines so we don't get caught with part of an
-      ;; escape sequence in one chunk and the rest in another.
-      (when (< (point) end)
-        (setq end (copy-marker end))
-        (ansi-color-apply-on-region beg end)
-        (ruby-compilation--adjust-paths beg end)))))
-
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
 
 (defun ruby-compilation--kill-any-orphan-proc ()
   "Ensure any dangling buffer process is killed."
