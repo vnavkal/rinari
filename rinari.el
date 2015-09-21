@@ -1,8 +1,9 @@
 ;;; rinari.el --- Rinari Is Not A Rails IDE
 
 ;; Copyright (C) 2008 Phil Hagelberg, Eric Schulte
+;; Copyright (C) 2009-2015 Steve Purcell
 
-;; Author: Phil Hagelberg, Eric Schulte
+;; Author: Phil Hagelberg, Eric Schulte, Steve Purcell
 ;; URL: https://github.com/eschulte/rinari
 ;; Version: DEV
 ;; Created: 2006-11-10
@@ -66,9 +67,9 @@
 ;;;###begin-elpa-ignore
 (let* ((this-dir (file-name-directory (or load-file-name buffer-file-name)))
        (util-dir (file-name-as-directory (expand-file-name "util" this-dir)))
-       (inf-ruby-dir (file-name-as-directory (expand-file-name "inf-ruby" util-dir)))
+;;       (inf-ruby-dir (file-name-as-directory (expand-file-name "inf-ruby" util-dir)))
        (jump-dir (file-name-as-directory (expand-file-name "jump" util-dir))))
-  (dolist (dir (list util-dir inf-ruby-dir jump-dir))
+  (dolist (dir (list util-dir jump-dir))
     (when (file-exists-p dir)
       (add-to-list 'load-path dir))))
 ;;;###end-elpa-ignore
@@ -290,14 +291,16 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
 (defun rinari-script (&optional script)
   "Select and run SCRIPT from the script/ directory of the rails application."
   (interactive)
-  (let* ((completions (append (directory-files (rinari-script-path) nil "^[^.]")
+  (let* ((completions (append (and (file-directory-p (rinari-script-path))
+                                   (directory-files (rinari-script-path) nil "^[^.]"))
                               (rinari-get-rails-commands)))
          (script (or script (jump-completing-read "Script: " completions)))
          (ruby-compilation-error-regexp-alist ;; for jumping to newly created files
           (if (equal script "generate")
               '(("^ +\\(create\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2)
-                ("^ +\\(exists\\) +\\([^[:space:]]+\\)" 2 3 nil 0 1)
-                ("^ +\\(conflict\\) +\\([^[:space:]]+\\)" 2 3 nil 0 0))
+                ("^ +\\(identical\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2)
+                ("^ +\\(exists\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2)
+                ("^ +\\(conflict\\) +\\([^[:space:]]+\\)" 2 3 nil 0 2))
             ruby-compilation-error-regexp-alist))
          (script-path (concat (rinari--wrap-rails-command script) " ")))
     (when (string-match-p "^\\(db\\)?console" script)
